@@ -13,14 +13,10 @@ class AVL_Phone_Book:
         self.root = None
 
     def _get_height(self, node):
-        if not node:
-            return 0
-        return node.height
+        return node.height if node else 0
 
     def _get_balance(self, node):
-        if not node:
-            return 0
-        return self._get_height(node.left) - self._get_height(node.right)
+        return self._get_height(node.left) - self._get_height(node.right) if node else 0
 
     def _new_height(self, node):
         return 1 + max(self._get_height(node.left), self._get_height(node.right))
@@ -28,27 +24,39 @@ class AVL_Phone_Book:
     def _right_rotate(self, y):
         x = y.left
         T2 = x.right
+
         x.right = y
         y.left = T2
+
         y.height = self._new_height(y)
         x.height = self._new_height(x)
+
         return x
 
     def _left_rotate(self, x):
         y = x.right
         T2 = y.left
+
         y.left = x
         x.right = T2
+
         x.height = self._new_height(x)
         y.height = self._new_height(y)
+
         return y
+
+    def _min_value_node(self, node):
+        current = node
+        while current.left:
+            current = current.left
+        return current
 
     def insert(self, key, value, node=None):
         if node is None:
-            if self.root is None:
-                self.root = Node(key, value)
-                return self.root
             node = self.root
+
+        if not node:
+            return Node(key, value)
 
         if key < node.key:
             node.left = self.insert(key, value, node.left)
@@ -61,61 +69,74 @@ class AVL_Phone_Book:
         node.height = self._new_height(node)
         balance = self._get_balance(node)
 
-        # Left Left
-        if balance > 1 and key < node.left.key:
-            if node == self.root:
-                self.root = self._right_rotate(node)
-                return self.root
+        if balance > 1 and self._get_balance(node.left) >= 0:
             return self._right_rotate(node)
 
-        # Left Right
-        if balance > 1 and key > node.left.key:
+        if balance > 1 and self._get_balance(node.left) < 0:
             node.left = self._left_rotate(node.left)
-            if node == self.root:
-                self.root = self._right_rotate(node)
-                return self.root
             return self._right_rotate(node)
 
-        # Right Right
-        if balance < -1 and key > node.right.key:
-            if node == self.root:
-                self.root = self._left_rotate(node)
-                return self.root
+        if balance < -1 and self._get_balance(node.right) <= 0:
             return self._left_rotate(node)
 
-        # Right Left
-        if balance < -1 and key < node.right.key:
+        if balance < -1 and self._get_balance(node.right) > 0:
             node.right = self._right_rotate(node.right)
-            if node == self.root:
-                self.root = self._left_rotate(node)
-                return self.root
             return self._left_rotate(node)
-
-        if node == self.root:
-            self.root = node
 
         return node
 
-    def remove(self, node, key):
-        # if not node:
-        #     return node
+    def add(self, key, value):
+        self.root = self.insert(key, value, self.root)
 
-        # if key < node.key:
-        #     node.left = self.remove(node.left, key)
-        pass
+    def remove(self, key, node=None):
+        if node is None:
+            node = self.root
 
-    def get(self, key):
-        pass
+        if not node:
+            return None
 
-    def contains(self, key):
-        pass
+        if key < node.key:
+            node.left = self.remove(key, node.left)
+        elif key > node.key:
+            node.right = self.remove(key, node.right)
+        else:
+            if not node.left:
+                return node.right
+            if not node.right:
+                return node.left
+
+            temp = self._min_value_node(node.right)
+            node.key = temp.key
+            node.value = temp.value
+            node.right = self.remove(temp.key, node.right)
+
+        node.height = self._new_height(node)
+        balance = self._get_balance(node)
+
+        if balance > 1 and self._get_balance(node.left) >= 0:
+            return self._right_rotate(node)
+
+        if balance > 1 and self._get_balance(node.left) < 0:
+            node.left = self._left_rotate(node.left)
+            return self._right_rotate(node)
+
+        if balance < -1 and self._get_balance(node.right) <= 0:
+            return self._left_rotate(node)
+
+        if balance < -1 and self._get_balance(node.right) > 0:
+            node.right = self._right_rotate(node.right)
+            return self._left_rotate(node)
+
+        return node
+
+    def delete(self, key):
+        self.root = self.remove(key, self.root)
 
     def inOrderTraversal(self, node=None):
         if node is None:
             node = self.root
-        if node is None:
+        if not node:
             return
-
         self.inOrderTraversal(node.left)
         print(node.key, node.value)
         self.inOrderTraversal(node.right)
