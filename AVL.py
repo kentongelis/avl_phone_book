@@ -51,21 +51,7 @@ class AVL_Phone_Book:
             current = current.left
         return current
 
-    def insert(self, key, value, node=None):
-        if node is None:
-            node = self.root
-
-        if not node:
-            return Node(key, value)
-
-        if key < node.key:
-            node.left = self.insert(key, value, node.left)
-        elif key > node.key:
-            node.right = self.insert(key, value, node.right)
-        else:
-            node.value = value
-            return node
-
+    def _check_rotations(self, node):
         node.height = self._new_height(node)
         balance = self._get_balance(node)
 
@@ -83,6 +69,24 @@ class AVL_Phone_Book:
             node.right = self._right_rotate(node.right)
             return self._left_rotate(node)
 
+        return node
+
+    def insert(self, key, value, node=None):
+        if node is None:
+            node = self.root
+
+        if not node:
+            return Node(key, value)
+
+        if key < node.key:
+            node.left = self.insert(key, value, node.left)
+        elif key > node.key:
+            node.right = self.insert(key, value, node.right)
+        else:
+            node.value = value
+            return node
+
+        node = self._check_rotations(node)
         return node
 
     def add(self, key, value):
@@ -110,27 +114,25 @@ class AVL_Phone_Book:
             node.value = temp.value
             node.right = self.remove(temp.key, node.right)
 
-        node.height = self._new_height(node)
-        balance = self._get_balance(node)
-
-        if balance > 1 and self._get_balance(node.left) >= 0:
-            return self._right_rotate(node)
-
-        if balance > 1 and self._get_balance(node.left) < 0:
-            node.left = self._left_rotate(node.left)
-            return self._right_rotate(node)
-
-        if balance < -1 and self._get_balance(node.right) <= 0:
-            return self._left_rotate(node)
-
-        if balance < -1 and self._get_balance(node.right) > 0:
-            node.right = self._right_rotate(node.right)
-            return self._left_rotate(node)
-
+        node = self._check_rotations(node)
         return node
 
     def delete(self, key):
         self.root = self.remove(key, self.root)
+
+    def get(self, key):
+        current = self.root
+        while current:
+            if key < current.key:
+                current = current.left
+            elif key > current.key:
+                current = current.right
+            else:
+                return current.value
+        return None
+
+    def contains(self, key):
+        return self.get(key) is not None
 
     def inOrderTraversal(self, node=None):
         if node is None:
