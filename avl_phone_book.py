@@ -71,10 +71,14 @@ class AVL_Phone_Book:
 
         return node
 
-    def insert(self, key, value, node=None):
-        if node is None:
-            node = self.root
+    def _inorder(self, node):
+        if not node:
+            return
+        self._inorder(node.left)
+        print(node.key, node.value)
+        self._inorder(node.right)
 
+    def insert(self, key, value, node=None):
         if not node:
             return Node(key, value)
 
@@ -93,9 +97,6 @@ class AVL_Phone_Book:
         self.root = self.insert(key, value, self.root)
 
     def remove(self, key, node=None):
-        if node is None:
-            node = self.root
-
         if not node:
             return None
 
@@ -134,11 +135,5 @@ class AVL_Phone_Book:
     def contains(self, key):
         return self.get(key) is not None
 
-    def inOrderTraversal(self, node=None):
-        if node is None:
-            node = self.root
-        if not node:
-            return
-        self.inOrderTraversal(node.left)
-        print(node.key, node.value)
-        self.inOrderTraversal(node.right)
+    def inOrderTraversal(self):
+        self._inorder(self.root)
